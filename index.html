@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600&family=Playfair+Display:ital,wght@1,400&display=swap" rel="stylesheet">
+    <title>For you, Ai Siti Robiah  💌</title>
+    <style>
+        .dancing { font-family: 'Dancing Script', cursive; }
+        .playfair { font-family: 'Playfair Display', serif; }
+
+        /* === 1. ANIMASI FOTO (SLIDE UP DARI BAWAH) === */
+        @keyframes slideUp {
+            0% { transform: translateY(100px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .animate-popup { opacity: 0; animation: slideUp 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+
+        /* === 2. ANIMASI LAIN === */
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+            50% { transform: translateY(-15px) rotate(1.5deg); }
+        }
+        .float-animation { animation: float 4s ease-in-out infinite; }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        .wiggle-animation { animation: wiggle 3s ease-in-out infinite; }
+
+        /* Garis Kertas */
+        .paper-lines {
+            background-image: linear-gradient(#a2d2ff 1px, transparent 1px);
+            background-size: 100% 2.5rem; line-height: 2.5rem;
+        }
+        
+        /* === 3. TRANSISI OPACITY === */
+        .fade-element { transition: opacity 1s ease-in-out; }
+        .hidden-el { opacity: 0; pointer-events: none; }
+        .visible-el { opacity: 1; pointer-events: auto; }
+        .section-content { display: none; }
+        .section-content.active { display: flex; }
+
+        /* === 4. LAYER SYSTEM === */
+        .bg-layer { position: fixed; inset: 0; z-index: 0; width: 100%; height: 100%; transition: opacity 1s ease-in-out; }
+        #global-rain { position: fixed; inset: 0; pointer-events: none; z-index: 10; }
+        .content-layer { position: relative; z-index: 50; }
+
+        .emoji-particle { 
+            position: absolute; top: -10vh; animation: fall linear infinite; 
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); will-change: transform;
+        }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+
+        /* === 5. ZOOM MODAL === */
+        #zoom-modal {
+            position: fixed; inset: 0; z-index: 100;
+            background: rgba(0,0,0,0.9);
+            display: none; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        #zoom-modal.active { display: flex; opacity: 1; }
+        .zoom-content { transform: scale(0.8); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        #zoom-modal.active .zoom-content { transform: scale(1); }
+
+        /* === 6. CUSTOM VOLUME SLIDER ESTETIK === */
+        input[type=range].custom-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            width: 5rem;
+        }
+        input[type=range].custom-slider:focus { outline: none; }
+        input[type=range].custom-slider::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 99px;
+        }
+        input[type=range].custom-slider::-webkit-slider-thumb {
+            height: 12px; width: 12px; border-radius: 50%;
+            background: #ff4d6d;
+            cursor: pointer; -webkit-appearance: none;
+            margin-top: -4px;
+            box-shadow: 0 0 8px rgba(255, 77, 109, 0.8);
+            transition: transform 0.2s;
+        }
+        input[type=range].custom-slider::-webkit-slider-thumb:hover { transform: scale(1.3); }
+        input[type=range].custom-slider::-moz-range-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: rgba(255, 255, 255, 0.5); border-radius: 99px;
+        }
+        input[type=range].custom-slider::-moz-range-thumb {
+            height: 12px; width: 12px; border-radius: 50%; border: none;
+            background: #ff4d6d; cursor: pointer;
+            box-shadow: 0 0 8px rgba(255, 77, 109, 0.8);
+            transition: transform 0.2s;
+        }
+        input[type=range].custom-slider::-moz-range-thumb:hover { transform: scale(1.3); }
+    </style>
+</head>
+<body class="bg-black overflow-x-hidden font-sans">
+
+    <div id="bg-landing" class="bg-layer visible-el bg-gradient-to-b from-[#ffe4e6] to-[#fecdd3]">
+        <div class="absolute top-20 left-10 w-40 h-40 bg-pink-300 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+        <div class="absolute bottom-20 right-10 w-40 h-40 bg-yellow-200 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+    </div>
+    <div id="bg-timer" class="bg-layer hidden-el bg-gradient-to-br from-[#ff9a9e] to-[#fecfef]">
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl opacity-60 animate-pulse"></div>
+    </div>
+    <div id="bg-gallery" class="bg-layer hidden-el bg-gradient-to-b from-[#2e1020] via-[#4a1e2e] to-[#2e1020]"></div>
+    <div id="bg-letter" class="bg-layer hidden-el bg-gradient-to-br from-[#fbc2eb] to-[#a6c1ee]">
+        <div class="absolute top-10 left-10 w-32 h-32 bg-purple-300 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+        <div class="absolute bottom-10 right-10 w-32 h-32 bg-pink-300 rounded-full mix-blend-multiply filter blur-2xl opacity-60 animate-pulse"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-yellow-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse"></div>
+    </div>
+
+    <div id="global-rain"></div>
+
+    <div id="volume-widget" class="fixed bottom-6 right-6 flex items-center gap-3 z-[100] hidden-el fade-element bg-white/20 backdrop-blur-md px-4 py-2.5 rounded-full border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.1)]">
+        <svg id="mute-icon" onclick="toggleMute()" class="w-6 h-6 text-white cursor-pointer hover:text-[#ff4d6d] transition-colors drop-shadow" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+        <input type="range" id="vol-slider" min="0" max="1" step="0.01" value="1" class="custom-slider md:w-24" oninput="changeVolume(this.value)">
+    </div>
+
+    <div id="zoom-modal" onclick="closeZoom()">
+        <div class="zoom-content relative bg-white p-4 pb-12 rounded shadow-2xl max-w-sm w-[90%] md:w-auto" onclick="event.stopPropagation()">
+            <button onclick="closeZoom()" class="absolute -top-12 right-0 text-white text-4xl font-bold hover:text-gray-300 transition-colors">&times;</button>
+            <img id="zoom-img" src="" class="w-full h-auto max-h-[70vh] object-cover rounded border border-gray-200">
+            <p id="zoom-caption" class="playfair text-center text-2xl mt-4 text-gray-800 font-semibold"></p>
+        </div>
+    </div>
+
+    <section id="landing-content" class="section-content active min-h-screen flex-col justify-center items-center relative text-[#5c3a3a] text-center content-layer fade-element visible-el">
+        <h1 class="dancing text-6xl md:text-8xl mb-6 drop-shadow-sm text-[#d63384]">Selamat Ulang Tahun Sayang!!<br>Apakah kamu mau terima hadiah dari aku?</h1>
+        <div class="flex gap-6 mt-8">
+            <button id="yesBtn" onclick="yesClick()" class="dancing px-10 py-4 bg-[#ff4d6d] text-white rounded-full text-3xl font-bold hover:scale-110 hover:shadow-xl transition-all cursor-pointer border-4 border-white shadow-lg">YES ❤️</button>
+            <button id="noBtn" onclick="growYes()" class="dancing px-10 py-4 bg-white text-[#ff4d6d] rounded-full text-3xl font-bold hover:bg-gray-50 transition-all cursor-pointer shadow-lg">NO 💔</button>
+        </div>
+    </section>
+
+    <section id="timer-content" class="section-content min-h-screen flex-col justify-center items-center relative text-center content-layer fade-element hidden-el">
+        <h1 class="dancing text-5xl md:text-7xl mb-4 text-[#d63384] drop-shadow-sm">Ini hari spesial kamu 🎉</h1>
+        
+        <div id="countdown" class="dancing text-9xl text-[#ff4d6d] font-bold drop-shadow-lg transition-transform duration-300 my-8">5</div>
+        
+        <button id="readyBtn" onclick="goToPage('letter')" class="dancing px-12 py-4 bg-white text-[#ff4d6d] rounded-full text-3xl font-bold hover:scale-110 shadow-xl transition-all cursor-pointer hidden-el border-4 border-[#ff4d6d]">Apakah kamu siap? 💌</button>
+    </section>
+
+    <section id="letter-content" class="section-content min-h-screen flex-col justify-center items-center py-10 relative content-layer fade-element hidden-el">
+        
+        <!-- INI BAGIAN YANG DIGANTI: SVG Kalender 5 September -->
+        <div class="hidden md:block absolute top-10 left-10 w-48 h-48 p-2 rotate-[-6deg] wiggle-animation">
+            <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-lg" xmlns="http://www.w3.org/2000/svg">
+                <!-- Kertas Kalender -->
+                <rect x="15" y="20" width="70" height="70" rx="8" fill="#ffffff" stroke="#ff4d6d" stroke-width="2"/>
+                <!-- Header Merah -->
+                <path d="M15 45 Q15 20 35 20 L65 20 Q85 20 85 45 L85 45 L15 45 Z" fill="#ff4d6d"/>
+                <!-- Ring Besi Kalender -->
+                <rect x="30" y="10" width="6" height="18" rx="3" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1"/>
+                <rect x="64" y="10" width="6" height="18" rx="3" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1"/>
+                <!-- Teks Bulan -->
+                <text x="50" y="38" font-family="sans-serif" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle" letter-spacing="1">SEPTEMBER</text>
+                <!-- Teks Tanggal -->
+                <text x="50" y="78" font-family="'Playfair Display', serif" font-size="38" font-weight="bold" fill="#ff4d6d" text-anchor="middle">5</text>
+            </svg>
+        </div>
+
+        <div class="hidden md:block absolute bottom-10 left-10 w-48 h-48  p-2  rotate-[5deg] wiggle-animation" style="animation-delay: -1s;"><img src="cat.svg" class="w-full h-full object-cover rounded"></div>
+        <div class="hidden md:block absolute top-10 right-10 w-48 h-48  p-2  rotate-[4deg] wiggle-animation" style="animation-delay: -2s;"><img src="choclate.svg" class="w-full h-full object-cover rounded"></div>
+        <div class="hidden md:block absolute bottom-10 right-10 w-48 h-48  p-2  rotate-[-3deg] wiggle-animation" style="animation-delay: -1.5s;"><img src="coklat.svg" class="w-full h-full object-cover rounded"></div>
+
+        <div class="paper-container relative bg-white w-[92%] max-w-xl min-h-[580px] p-10 pl-16 shadow-2xl border border-gray-200 paper-lines transform hover:scale-[1.01] transition-transform duration-500">
+            <div class="absolute left-[48px] top-0 bottom-0 w-[2px] bg-red-200"></div>
+            <h3 class="dancing text-[#ff4d6d] text-4xl pt-10 mb-0">Dear Ai Siti Robiah,</h3>
+            
+            <p id="typedText" class="dancing text-2xl text-gray-800 leading-[2.5rem] whitespace-pre-line"></p>
+            
+            <button onclick="goToPage('gallery')" class="dancing mt-12 px-8 py-2 bg-[#ff4d6d] text-white rounded-xl text-xl hover:bg-red-600 transition-colors cursor-pointer">📸 Our Memories</button>
+        </div>
+    </section>
+
+    <section id="gallery-content" class="section-content min-h-screen flex-col items-center py-20 relative content-layer fade-element hidden-el">
+        <div class="text-center mb-20 px-5">
+            <h1 class="dancing text-white text-5xl md:text-6xl mb-4 drop-shadow-md">Selamat Ulang Tahun Sayangkuu 💕</h1>
+            <h2 class="playfair italic text-pink-200 text-lg md:text-xl max-w-2xl mx-auto">Klik untuk zoom in fotonya ✨</h2>
+        </div>
+        
+        <div class="flex flex-wrap justify-center gap-x-12 gap-y-32 px-5 max-w-7xl">
+            <script>
+                const photosData = [
+                    { src: 'foto1.jpeg', caption: '', ratioClass: 'aspect-video' },
+                    { src: 'foto2.jpeg', caption: '', ratioClass: 'aspect-video' },
+                    { src: 'foto3.jpeg', caption: '', ratioClass: 'aspect-video' },
+                    { src: 'foto4.jpeg', caption: '', ratioClass: 'aspect-video' },
+                    { src: 'foto5.jpeg', caption: '', ratioClass: 'aspect-[3/4]' },
+                    { src: 'foto6.jpeg', caption: '', ratioClass: 'aspect-[3/4]' },
+                    { src: 'foto7.jpeg', caption: '', ratioClass: 'aspect-[3/4]' },
+                    { src: 'foto8.jpeg', caption: '', ratioClass: 'aspect-[3/4]' }
+                ];
+
+                photosData.forEach((photo, index) => {
+                    let delay = (index + 1) * 0.25;
+                    document.write(`
+                        <div class="animate-popup relative flex flex-col items-center group cursor-pointer" style="animation-delay: ${delay}s" onclick="openZoom('${photo.src}', '${photo.caption}')">
+                            <div class="float-animation">
+                                <div class="bg-white p-3 pb-8 shadow-2xl w-56 md:w-64 transform group-hover:scale-110 group-hover:rotate-2 transition-all duration-300 rounded-sm">
+                                    <img src="${photo.src}" class="w-full ${photo.ratioClass} object-cover mb-4 border border-gray-100 bg-gray-100">
+                                    <p class="playfair italic text-gray-800 text-center text-sm font-semibold">${photo.caption}</p>
+                                </div>
+                            </div>
+                            <div class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-40 h-8 bg-black/40 blur-xl rounded-[50%] opacity-60 group-hover:scale-110 transition-transform"></div>
+                        </div>
+                    `);
+                });
+            </script>
+        </div>
+        
+        <button onclick="goToPage('letter')" class="dancing mt-24 px-12 py-4 bg-white text-[#ff4d6d] rounded-2xl text-3xl font-bold relative shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:scale-110 transition-transform cursor-pointer mb-10">💌 Kembali ke Surat</button>
+    </section>
+
+    <audio id="music" src="lagu.mp3" loop></audio>
+
+    <script>
+        function startEternalRain() {
+            const container = document.getElementById('global-rain');
+            const icons = ['🍫', '❤️', '🍬', '🍩', '🧸', '💌', '✨', '🌸']; 
+            setInterval(() => {
+                const e = document.createElement('div');
+                e.className = 'emoji-particle text-3xl md:text-5xl';
+                e.innerText = icons[Math.floor(Math.random() * icons.length)];
+                e.style.left = Math.random() * 100 + '%';
+                e.style.animationDuration = (Math.random() * 5 + 3) + 's'; 
+                container.appendChild(e);
+                setTimeout(() => e.remove(), 8000);
+            }, 300);
+        }
+        startEternalRain();
+
+        function openZoom(imageSrc, captionText) {
+            const modal = document.getElementById('zoom-modal');
+            const img = document.getElementById('zoom-img');
+            const caption = document.getElementById('zoom-caption');
+            img.src = imageSrc;
+            caption.innerText = captionText;
+            modal.classList.add('active');
+        }
+        function closeZoom() { document.getElementById('zoom-modal').classList.remove('active'); }
+
+        let currentPage = 'landing';
+        function goToPage(targetPage) {
+            const oldContent = document.getElementById(currentPage + '-content');
+            const oldBg = document.getElementById('bg-' + currentPage);
+            const newContent = document.getElementById(targetPage + '-content');
+            const newBg = document.getElementById('bg-' + targetPage);
+
+            if(oldContent) {
+                oldContent.classList.remove('visible-el'); oldContent.classList.add('hidden-el');
+                setTimeout(() => { oldContent.classList.remove('active'); }, 1000); 
+            }
+            if(oldBg) { oldBg.classList.remove('visible-el'); oldBg.classList.add('hidden-el'); }
+
+            setTimeout(() => {
+                newContent.classList.add('active'); void newContent.offsetWidth; 
+                newContent.classList.remove('hidden-el'); newContent.classList.add('visible-el');
+                newBg.classList.remove('hidden-el'); newBg.classList.add('visible-el');
+                window.scrollTo(0, 0);
+                
+                if (targetPage === 'timer') startCountdown();
+                if (targetPage === 'letter') typeLetter();
+            }, 500);
+            currentPage = targetPage;
+        }
+
+        let countdownInterval;
+        function startCountdown() {
+            let count = 5;
+            const countEl = document.getElementById('countdown');
+            const readyBtn = document.getElementById('readyBtn');
+            
+            countEl.innerText = count;
+            countEl.style.display = 'block';
+            readyBtn.classList.add('hidden-el');
+            readyBtn.classList.remove('visible-el');
+
+            countdownInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    countEl.innerText = count;
+                    countEl.style.transform = 'scale(1.2)';
+                    setTimeout(() => { countEl.style.transform = 'scale(1)'; }, 150);
+                } else {
+                    clearInterval(countdownInterval);
+                    countEl.style.display = 'none'; 
+                    readyBtn.classList.remove('hidden-el');
+                    readyBtn.classList.add('visible-el'); 
+                }
+            }, 1000);
+        }
+
+        const music = document.getElementById('music');
+        const volSlider = document.getElementById('vol-slider');
+        const muteIcon = document.getElementById('mute-icon');
+        let lastVolume = 1;
+
+        const svgHigh = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
+        const svgLow = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/>';
+        const svgMuted = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
+
+        function changeVolume(val) {
+            music.volume = val;
+            lastVolume = val > 0 ? val : 1; 
+            updateIcon(val);
+        }
+
+        function toggleMute() {
+            if (music.volume > 0) {
+                lastVolume = music.volume;
+                music.volume = 0;
+                volSlider.value = 0;
+            } else {
+                music.volume = lastVolume;
+                volSlider.value = lastVolume;
+            }
+            updateIcon(music.volume);
+        }
+
+        function updateIcon(val) {
+            if (val == 0) muteIcon.innerHTML = svgMuted;
+            else if (val < 0.5) muteIcon.innerHTML = svgLow;
+            else muteIcon.innerHTML = svgHigh;
+        }
+
+        let scale = 1;
+        function growYes() { scale += 0.5; document.getElementById('yesBtn').style.transform = `scale(${scale})`; }
+        
+        function yesClick() {
+            const volWidget = document.getElementById('volume-widget');
+            volWidget.classList.remove('hidden-el');
+            volWidget.classList.add('visible-el');
+
+            music.volume = 0; 
+            music.play();
+            
+            let currentVol = 0; 
+            const fadeIn = setInterval(() => { 
+                let targetVol = parseFloat(volSlider.value);
+                if (currentVol < targetVol) { 
+                    currentVol += 0.05; 
+                    if(currentVol > targetVol) currentVol = targetVol;
+                    music.volume = currentVol; 
+                } else {
+                    clearInterval(fadeIn); 
+                }
+            }, 100);
+
+            goToPage('timer');
+        }
+
+        const text = `Happy birthday, sayangg. Aku harap hari ini memberimu banyak kebahagiaan dan kesenangan. Aku ga bisa mendeskripsikan betapa berartinya kamu buat aku. Kamu itu bener-bener manusia terbaik yang pernah aku temuin sampe saat ini.
+
+Makasii udaa hadir dan menemani sepanjang perjalanan ini. Semoga kita tetep sama-sama sampai kapan pun yaaa. Makasii udaa ga ninggalin dan percaya sama aku selama ini, makasi tetep pilih aku di hidup kamu. 
+
+Jujur, aku ngga tau harus ngetik apa lagi. Susah banget ya jalan kita, tapi satu hal yang aku percaya: kita bisa laluinnya bareng-bareng dan mendapatkan hal yang luar biasa baiknya di depan nanti.
+
+Sekali lagi, selamat ulang tahun perempuan terbaikkuuu. Semoga Allah selalu memudahkan jalanmu, melancarkan rezeki dan segala urusanmu, serta mengabulkan seluruh permintaanmu. Aamiin Allahumma Aamiin. 
+
+Panjang umur, sehat selalu yaa sayangg, dijauhkan dari segala penyakit dan marabahaya. Aamiin. Semoga perasaan kamu ga pernah berubah sedikit pun sama akuu. Tetep sabar sama aku, tetep jadi orang baik, tetep jadi perempuan yang aku kenal, dan tetep kuat di tengah masalah apa pun yang akan datang ke depannya! 
+
+I love you so much and more. Maaf yaaa kalo aku belum bisa jadi apa yang kamu mau.
+
+But, I will be the man who gives you the love you deserve.`;
+        
+        let i = 0;
+        function typeLetter() {
+            const target = document.getElementById('typedText'); i = 0; target.textContent = '';
+            function typing() { if (i < text.length) { target.textContent += text[i++]; setTimeout(typing, 45); } }
+            typing();
+        }
+    </script>
+</body>
+</html>
